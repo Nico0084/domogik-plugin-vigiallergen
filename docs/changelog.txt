@@ -1,0 +1,26 @@
+=========
+Changelog
+=========
+
+0.4 (28-02-2019)
+================
+* Rename plugin to vigiallergen
+* Change source code to handle other allergen services
+* Adapt level extraction to new RNSA web site. Now use text decode (remove picture extraction)
+* device_type changed. Create new device
+* For moment only device_type for RNSA french pollens departement
+
+0.3 (17-02-2018)
+================
+* device_type changed. Create new device
+* Change state level code color to numeric level 0 to 5
+* Change picture decript due to new RNSA web site extraction picture format
+
+0.2
+===
+* Fix some issues
+
+0.1
+===
+
+* Plugin creation named vigipollen

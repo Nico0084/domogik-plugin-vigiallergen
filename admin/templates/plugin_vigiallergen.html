@@ -1,0 +1,34 @@
+{% extends theme("base/base.html") %}
+{% import theme("base/wtf.html") as wtf %}
+
+{% block content %}
+{% include theme("client_menu.html") %}
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-heading"><h5>{% trans %}Pollens vigilance{% endtrans %}</h5></div>
+        <div class="panel-body">                
+            {% for dep in departementslist %}
+                <div class="panel panel-default">
+                    <div class="panel-heading">{% trans %}Departement {{ dep }} {% endtrans %}</div>
+                    <div class="panel-body">
+                        <center><img src="http://internationalragweedsociety.org/vigilance/d%20{{ dep }}.gif"/></center>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-heading"><h5>{% trans %}Plugin log{% endtrans %}</h5></div>
+            <div class="panel-body">
+                <p>{{ logfile }}</p>
+                <pre>{{ errorlog }}</pre>
+                <a href="./{{ clientid }}/log" class="btn btn-info" role="button">{% trans %}Display log file{% endtrans %}</a>
+            </div>
+
+    </div>
+</div>
+
+{% endblock %}

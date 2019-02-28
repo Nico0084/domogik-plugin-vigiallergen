@@ -1,0 +1,47 @@
+.. _index:
+
+===================
+Plugin vigiallergen
+===================
+
+Purpose
+=======
+
+Dependencies
+============
+Python six (>=1.10.0)
+
+Plugin configuration
+====================
+
+===================== ========================== ===============================================================
+Key                   default                    Description
+===================== ========================== ===============================================================
+httpsource            http://www.pollens.fr      URL source vigipollens web site.
+===================== ========================== ===============================================================
+
+Create the devices
+==================
+
+Device parameters configuration
+-------------------------------
+
+X parameters are needed for a domogik device creation ...
+
+
+===================== =============================== ===========================================================
+Key                   Type                            Description
+===================== =============================== ===========================================================
+departement           vigiallergen.pollens-rnsa-dep   The french 'departement' number
+===================== =============================== ===========================================================
+
+
+Start the plugin
+================
+
+You can now start the plugin (start button) and use the created devices.
+
+Set up your widgets on the user interface
+=========================================
+
+You can now place the widgets of your devices features on the user interface.

@@ -1,0 +1,6 @@
+===================
+Develop new service
+===================
+
+Use class BaseVigiallergens heritance from **lib/vigiallergen.py** to develop new allergen service.
+Add your affectation device in VigiallergenManager._loadDMGDevices function of **bin/vigiallergen.py** file

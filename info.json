@@ -1,0 +1,383 @@
+{
+    "json_version": 2,
+
+    "identity": {
+        "author": "Nicolas V.",
+        "author_email": "nico84dev at gmail.com",
+        "tags": ["Health", "Allergen","Pollens"],
+        "dependencies": [{
+                "id": "six (>=1.10.0)",
+                "type": "python"
+            }],
+        "description": "Domogik Plugin for allergen vigilance like pollens from french RNSA",
+        "domogik_min_version": "0.5.2",
+        "name": "vigiallergen",
+        "type": "plugin",
+        "version": "0.4"
+    },
+
+    "configuration": [{
+            "default": "http://www.pollens.fr",
+            "description": "URL source vigipollens web site.",
+            "key": "httpsource",
+            "name": "http vigipollens RNSA",
+            "required": "yes",
+            "type": "string"
+        }
+    ],
+
+    "device_types": {
+        "vigiallergen.pollens-rnsa-dep": {
+            "description": "Vigilance des pollens pour un département Français",
+            "id": "vigilance",
+            "name": "RNSA Vigilance pollens (Département)",
+            "commands": [],
+            "sensors": [
+                        "Departement",
+                        "ValidityReport",
+                        "MaxDepartementLevel",
+                        "AllergenCypress",
+                        "AllergenWillow",
+                        "AllergenAsh",
+                        "AllergenPoplar",
+                        "AllergenCharm",
+                        "AllergenBirch",
+                        "AllergenPlatane",
+                        "AllergenOak",
+                        "AllergenGramineae",
+                        "AllergenSorrel",
+                        "AllergenUrticaceae",
+                        "AllergenChestnut",
+                        "AllergenArmoise",
+                        "AllergenAlder",
+                        "AllergenHazelnut",
+                        "AllergenPlantain",
+                        "AllergenOlive",
+                        "AllergenAmbrosia",
+                        "AllergenLinden"
+                        ],
+            "parameters": [
+                {
+                    "key": "departement",
+                    "xpl": false,
+                    "description": "The french 'departement' number",
+                    "type": "integer"
+                }
+            ]
+        }
+    },
+
+    "sensors": {
+        "Departement": {
+            "name": "departement",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "ValidityReport": {
+            "name": "Report validity date",
+            "data_type": "DT_Date",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "MaxDepartementLevel": {
+            "name": "Global vigilance departement",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenCypress": {
+            "name": "Vigilance Cypres",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenWillow": {
+            "name": "Vigilance Saule",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenAsh": {
+            "name": "Vigilance Frenes",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenPoplar": {
+            "name": "Vigilance Peupliers",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenCharm": {
+            "name": "Vigilance Charmes",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenBirch": {
+            "name": "Vigilance Bouleaux",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenPlatane": {
+            "name": "Vigilance Platanes",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenOak": {
+            "name": "Vigilance Chenes",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenGramineae": {
+            "name": "Vigilance Graminees",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenSorrel": {
+            "name": "Vigilance Oseille",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenUrticaceae": {
+            "name": "Vigilance Urticacees",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenChestnut": {
+            "name": "Vigilance Chataigniers",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenArmoise": {
+            "name": "Vigilance Armoises",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenAlder": {
+            "name": "Vigilance Aulnes",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenHazelnut": {
+            "name": "Vigilance Noisetiers",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenPlantain": {
+            "name": "Vigilance Plantains",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenOlive": {
+            "name": "Vigilance Olivier",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenAmbrosia": {
+            "name": "Vigilance Ambroisies",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        },
+        "AllergenLinden": {
+            "name": "Vigilance Tilleuls",
+            "data_type": "DT_Number",
+            "conversion": "",
+            "incremental": false,
+            "timeout": 86400,
+            "history": {
+                "store": false,
+                "duplicate": true,
+                "max": 0,
+                "expire": 0,
+                "round_value": 0
+            }
+        }
+    },
+    "commands": {},
+    "xpl_stats": {},
+    "xpl_commands": {}
+}
