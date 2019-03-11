@@ -42,16 +42,16 @@ static_dir = "{0}/{1}/admin/static".format(get_packages_directory(), package)
 geterrorlogcmd = "{0}/{1}/admin/geterrorlog.sh".format(get_packages_directory(), package)
 logfile = "/var/log/domogik/{0}.log".format(package)
 
-plugin_vigipollens_adm = Blueprint(package, __name__,
+plugin_vigiallergen_adm = Blueprint(package, __name__,
                         template_folder = template_dir,
                         static_folder = static_dir)
 
 
 @plugin_vigiallergen_adm.route('/<client_id>')
 def index(client_id):
-    detail = get_client_detail(client_id)      # vigipollens plugin configuration
-    devices = get_client_devices(client_id)     # vigipollens plugin devices list
-    #print("Admin vigipollens devices\n %s" % format(devices))
+    detail = get_client_detail(client_id)      # vigiallergen plugin configuration
+    devices = get_client_devices(client_id)     # vigiallergen plugin devices list
+    #print("Admin vigiallergen devices\n %s" % format(devices))
     print("Departements list: %s" % format(get_informations(devices)))
     try:
         return render_template('plugin_vigiallergen.html',
