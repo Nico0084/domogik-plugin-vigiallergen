@@ -144,7 +144,7 @@ class VigiRnsaPollens(BaseVigiallergens):
                 u"Olivier", u"Ambroisies", u"Tilleul"
                 ]
     allergensListEn = [u"Cypress", u"Willow", u"Ash", u"Poplar",
-                u"Charm",  u"Birsh", u"Platane", u"Oak",
+                u"Charm",  u"Birch", u"Platane", u"Oak",
                 u"Gramineae",  u"Sorrel", u"Urticaceae", u"Chestnut",
                 u"Armoise", u"Alder", u"Hazelnut", u"Plantain",
                 u"Olive", u"Ambrosia", u"Linden"
