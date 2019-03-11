@@ -149,7 +149,7 @@ class VigiRnsaPollens(BaseVigiallergens):
                 u"Armoise", u"Alder", u"Hazelnut", u"Plantain",
                 u"Olive", u"Ambrosia", u"Linden"
                 ]
-    allergenLevels = {"#FFFFFF": 0, '#74e46c': 1, "": 2, "#f2ea1a": 3, "#FF7F29": 4, "#FF0200": 5}
+    allergenLevels = {"#ffffff": 0, '#74e46c': 1, "#048000": 2, "#f2ea1a": 3, "#ff7f29": 4, "#ff0200": 5}
 
     # -------------------------------------------------------------------------------------------------
     def __init__(self, log, send, stop, getURIDep, directory, device_id, dep):
@@ -237,11 +237,15 @@ class VigiRnsaPollens(BaseVigiallergens):
             allergName = htmltext[startName:endName].strip()
             startVigi = htmltext.find('style="fill: ', startVigi) + 13
             endVigi = htmltext.find('; stroke:', startVigi)
-            allergVigi = htmltext[startVigi:endVigi]
+            allergVigi = htmltext[startVigi:endVigi].lower()
 #            print(u"****** Allergen Name find {0} to {1} : {2}={3}".format(startName, endName, allergName, allergVigi))
             if allergName in self.allergensListFr :
-                self.log.debug(u"Allergen {0} identified at level {1}".format(allergName,  self.allergenLevels[allergVigi]))
-                level = self.allergenLevels[allergVigi]
+                if allergVigi in self.allergenLevels :
+                    self.log.debug(u"Allergen {0} identified at level {1}".format(allergName, self.allergenLevels[allergVigi]))
+                    level = self.allergenLevels[allergVigi]
+                else :
+                    self.log.warning(u"Allergen {0} identified with unknown level {1} (setting level=0)".format(allergName, allergVigi))
+                    level = 0
                 id = self.allergensListFr.index(allergName)
                 if level > vigiLevelMax:
                     vigiLevelMax = level
