@@ -5,13 +5,13 @@
 {% include theme("client_menu.html") %}
 <div class="container">
     <div class="panel panel-default">
-        <div class="panel-heading"><h5>{% trans %}Pollens vigilance{% endtrans %}</h5></div>
-        <div class="panel-body">                
+        <div class="panel-heading"><h5>{% trans %}Pollens vigilance{% endtrans %}@RNSA</h5></div>
+        <div class="panel-body">
             {% for dep in departementslist %}
                 <div class="panel panel-default">
                     <div class="panel-heading">{% trans %}Departement {{ dep }} {% endtrans %}</div>
                     <div class="panel-body">
-                        <center><img src="http://internationalragweedsociety.org/vigilance/d%20{{ dep }}.gif"/></center>
+                        <center><img src="http://www.pollens.fr/generated/vigilance_map.png" width="50%"/></center>
                     </div>
                 </div>
             {% endfor %}

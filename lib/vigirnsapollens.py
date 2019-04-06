@@ -31,9 +31,13 @@ Implements
 """
 
 import traceback
-
+import threading
+import requests
 import time
+import locale
+from datetime import datetime
 import urllib
+from six.moves.html_parser import HTMLParser
 from domogik_packages.plugin_vigiallergen.lib.vigiallergen import BaseVigiallergens
 
 DEPARTMENTS = {
@@ -134,6 +138,102 @@ DEPARTMENTS = {
     '95': u'Val-d\'Oise'
     }
 
+RNSA_Manager = None
+TIME_CHECK = 21600
+
+class Rnsa_Manager(threading.Thread):
+    """ Class with only one instance to check RNSA web site general information"""
+    # Decoding vigipollens web site parameters
+#    strValidity = u"Carte de vigilance - mise à jour le "
+    strValidity = u"Carte de vigilance - mise &agrave; jour le "
+#    strURLimg = (u'<div id="info1">', "01.")
+    strURLimg = (u'<div id="vigilanceMap">', "01.")
+#    urlMap = u"https://www.pollens.fr/generated/vigilance_map.png"
+    urlDataDep = u'/risks/thea/counties/'
+
+    def __init__(self, get_config, log, stop):
+        threading.Thread.__init__(self)
+        self.stop = stop
+        self.log = log
+        self.get_config = get_config
+        self.validityDate = ""
+        self.urlVigipollens = ""
+        self.urlVigiMap = ""
+        self.running = False
+        self.log.info(u"Rnsa_Manager initialized")
+
+    def getVigiSource(self, httpsource):
+        """
+        Load vigipollens web site and extact parameters
+        """
+        self.log.debug(u"RNSA Manager loading web site source .....")
+        try :
+            req = urllib.urlopen(httpsource)
+            htmltext = req.read().decode("utf-8", "replace")
+            req.close()
+            self.log.info(u"RNSA Manager loaded web site source : {0}".format(httpsource))
+        except urllib.error.URLError as e:
+            self.log.error(u"RNSA Manager GET {0}, URLError reason: {1}".format(httpsource, e.reason))
+        except urllib.error.HTTPError as e:
+            self.log.error(u"RNSA Manager GET {0}, HTTPError code: {1} ({2})".format(httpsource, e.code, e.reason))
+        except UnicodeDecodeError as e:
+            self.log.error(u"RNSA Manager decoding {0}, Unicode fail: {1} )".format(httpsource, e))
+        except :
+            self.log.error(u"RNSA Manager GET {0}, Unknown error: {1}".format(httpsource, traceback.format_exc()))
+        else :
+            locale.setlocale(locale.LC_ALL, '')
+#            print(htmltext)
+            start = htmltext.find(self.strValidity) + len(self.strValidity)
+            end = htmltext.find(u"</u>", start)
+            validDate = htmltext[start:end]
+            h = HTMLParser()
+            validDate = u"{0}".format(h.unescape(validDate))
+            year = datetime.now().year
+            try :
+                Validity = datetime.strptime(u"{0} {1}".format(validDate, year).encode('utf-8'), '%d %B %Y' )
+                self.validityDate = Validity.strftime('%Y-%m-%d')
+                self.log.info(u"RNSA Manager decode validity date :  {0}".format(self.validityDate))
+            except ValueError as e:
+                self.log.warning(u"RNSA Manager fail to decode validity date on source : {0}, error is : {1}".format(validDate, e))
+                self.validityDate = ""
+            try :
+                start = htmltext.find(self.strURLimg[0])
+                start = htmltext.find(u'<img src="', start + len(self.strURLimg[0]))
+                end = htmltext.find(u' alt="', start + len(self.strURLimg[0]))
+                self.urlVigiMap = htmltext[start+10:end]
+                self.urlVigipollens = u"{0}{1}".format(httpsource, self.urlDataDep)
+                self.log.info(u"RNSA Manager decode URL for vigi map : {0}, URI for dep : {1}".format(self.urlVigiMap, self.urlVigipollens))
+            except ValueError as e:
+                self.log.warning(u"RNSA Manager fail to decode URL for vigi map on source : {0}, error is : {1}".format(self.urlVigiMap, e))
+                self.urlVigiMap = ""
+                self.urlVigipollens = ""
+            return ""
+        return "error"
+
+    def getURIDep(self, dep):
+        """Return URL for vigilance value from a french departement"""
+        if self.urlVigipollens :
+            return ("{0}{1}".format(self.urlVigipollens, dep), self.validityDate)
+        else :
+            return ("", "")
+
+    def run(self):
+        """ Get pollens vigilance
+        """
+        self.running = True
+        self._lastUpdate = 0
+        self.log.info(u"RNSA Manager start thread to check source web source every 6 hour")
+        try :
+            while not self.stop.isSet() and self.running:
+                if self._lastUpdate + TIME_CHECK < time.time() :
+                    if self.getVigiSource(self.get_config("httpsource")) == "" :
+                        self._lastUpdate = time.time()
+                self.stop.wait(60)
+        except :
+            self.log.error(u"RNSA Manager thread stopped, error: {0}".format(traceback.format_exc()))
+        self.running = False
+        self.log.info(u"RNSA Manager stoppe thread to check source web source.")
+
 class VigiRnsaPollens(BaseVigiallergens):
     """ VigiRnsaPollens
     """
@@ -149,10 +249,9 @@ class VigiRnsaPollens(BaseVigiallergens):
                 u"Armoise", u"Alder", u"Hazelnut", u"Plantain",
                 u"Olive", u"Ambrosia", u"Linden"
                 ]
-    allergenLevels = {"#ffffff": 0, '#74e46c': 1, "#048000": 2, "#f2ea1a": 3, "#ff7f29": 4, "#ff0200": 5}
 
     # -------------------------------------------------------------------------------------------------
-    def __init__(self, log, send, stop, getURIDep, directory, device_id, dep):
+    def __init__(self, log, send, stop, get_config, directory, device_id, dep, register_thread):
         """ Init VigiRnsaPollens object
             @param log : log instance
             @param send : send
@@ -160,10 +259,18 @@ class VigiRnsaPollens(BaseVigiallergens):
             @param device_id : domogik device id
             @param dep : departement ID
         """
+        global RNSA_Manager
+
         BaseVigiallergens.__init__(self, log, send, stop, device_id)
         self.dep = dep
-        self.getURIDep = getURIDep
         self.nbAllergen = len(self.allergensListFr)
+        if RNSA_Manager is None :
+            # Start only one RNSA_Manager
+            RNSA_Manager = Rnsa_Manager(get_config, log, stop)
+            RNSA_Manager.start()
+            register_thread(RNSA_Manager)
+            self._stop.wait(2)
+        self.getURIDep = RNSA_Manager.getURIDep
 
     # -------------------------------------------------------------------------------------------------
     def setParams(self, dep):
@@ -180,7 +287,7 @@ class VigiRnsaPollens(BaseVigiallergens):
         self.log.info(u"Start to check allergens vigilance for departement '{0}'".format(self.dep))
         try :
             while not self._stop.isSet() and self.run:
-                if self._lastUpdate + 3600 < time.time() :
+                if self._lastUpdate + TIME_CHECK < time.time() :
                     self.log.debug(u"Get allergens vigilance for {0} 'departement'".format(self.dep))
                     pollensVigi = self.getVigilance()
                     print(pollensVigi)
@@ -191,7 +298,7 @@ class VigiRnsaPollens(BaseVigiallergens):
                         self.log.error(u"Error getting allergens vigilance for departement' {0}".format(self.dep))
                     self._lastUpdate = time.time()
 
-                self._stop.wait(1)
+                self._stop.wait(60)
         except :
             self.log.error(u"Check device {0} error: {1}".format(self.device_id, (traceback.format_exc())))
         self.run = False
@@ -205,53 +312,36 @@ class VigiRnsaPollens(BaseVigiallergens):
             self.log.warning(u"Device can't retrieve data from Vigipollens web site")
             return "error"
         try:
-            req = urllib.urlopen(uri)
-            htmltext = req.read().decode("utf-8", "replace")
-            req.close()
+            result = requests.get(uri).json()
             self.log.info(u"Device loaded web site source : {0}".format(uri))
-        except urllib.error.URLError as e:
+        except requests.exceptions.ConnectionError as e:
             self.log.error(u"Device GET {0}, URLError reason: %s" % (uri, e.reason))
             return "error"
-        except urllib.error.HTTPError as e:
+        except requests.exceptions.HTTPError as e:
             self.log.error(u"Device GET {0}, HTTPError code: {1} , reason : {2}" % (uri, e.code, e.reason))
+            return "error"
+        except requests.exceptions.Timeout as e:
+            self.log.error(u"Device GET {0}, Timeout code: {1} , reason : {2}" % (uri, e.code, e.reason))
             return "error"
         except UnicodeDecodeError as e:
             self.log.error(u"Device decoding {0}, Unicode fail: {1} )".format(uri, e))
             return "error"
         except:
-            self.log.error(u"### API GET '%s', Unknown error: '%s'" % (uri, (traceback.format_exc())))
+            self.log.error(u"### Retrieve RNSA vigilance GET '{0}', Unknown error: {1}".format(uri, (traceback.format_exc())))
             return "error"
-
-#        print(htmltext)
-        vigiLevelMax = 0
-        pollensVigi = {"Departement" : self.dep, "ValidityReport" : validityDate}
-        start = htmltext.find(DEPARTMENTS[self.dep])
-        end = htmltext.find('</b></center>', start)
-#        print(u"++++ departement : {0}".format(htmltext[start:end]))
-        startName = end
-        startVigi = end
-        while startName != -1 :
-            startName = htmltext.find('<tspan x="80" dx="0" text-anchor="end"', startName)
-            startName = htmltext.find(';">', startName) + 3
-            endName = htmltext.find('</tspan>', startName)
-            allergName = htmltext[startName:endName].strip()
-            startVigi = htmltext.find('style="fill: ', startVigi) + 13
-            endVigi = htmltext.find('; stroke:', startVigi)
-            allergVigi = htmltext[startVigi:endVigi].lower()
-#            print(u"****** Allergen Name find {0} to {1} : {2}={3}".format(startName, endName, allergName, allergVigi))
-            if allergName in self.allergensListFr :
-                if allergVigi in self.allergenLevels :
-                    self.log.debug(u"Allergen {0} identified at level {1}".format(allergName, self.allergenLevels[allergVigi]))
-                    level = self.allergenLevels[allergVigi]
-                else :
-                    self.log.warning(u"Allergen {0} identified with unknown level {1} (setting level=0)".format(allergName, allergVigi))
-                    level = 0
-                id = self.allergensListFr.index(allergName)
-                if level > vigiLevelMax:
-                    vigiLevelMax = level
-                    pollensVigi["MaxDepartementLevel"] = level
-                pollensVigi["Allergen{0}".format(self.allergensListEn[id])] = level
-            startName = htmltext.find('<tspan x="80" dx="0" text-anchor="end"', endName)
-            startVigi = endVigi
-#            print(startName, startVigi,  htmlLen)
+        try:
+            pollensVigi = {"Departement" : self.dep, "ValidityReport" : validityDate, "MaxDepartementLevel" : result["riskLevel"]}
+            for item in result['risks']:
+                if item["pollenName"] in self.allergensListFr :
+                    if  item["level"] >= 0 and  item["level"] <= 5 :
+                        self.log.debug(u"Allergen {0} identified at level {1}".format( item["pollenName"], item["level"]))
+                        level = item["level"]
+                    else :
+                        self.log.warning(u"Allergen {0} identified with unknown level {1} (setting level=0)".format( item["pollenName"], item["level"]))
+                        level = 0
+                    id = self.allergensListFr.index(item["pollenName"])
+                    pollensVigi["Allergen{0}".format(self.allergensListEn[id])] = level
+        except:
+            self.log.error(u"### Retrieve RNSA vigilance decoding '{0}', error: {1}".format(result, (traceback.format_exc())))
+            return "error"
         return pollensVigi

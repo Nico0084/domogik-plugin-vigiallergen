@@ -31,26 +31,14 @@ Implements
 
 """
 
-import urllib
-import locale
-from datetime import datetime
 from domogik.common.plugin import Plugin
 from domogik_packages.plugin_vigiallergen.lib.vigirnsapollens import VigiRnsaPollens
 import threading
 import traceback
 
-from six.moves.html_parser import HTMLParser
-
 class VigiallergenManager(Plugin):
     """ Get allergen vigilances
     """
-    # Decoding vigipollens web site parameters
-#    strValidity = u"Carte de vigilance - mise à jour le "
-    strValidity = u"Carte de vigilance - mise &agrave; jour le "
-#    strURLimg = (u'<div id="info1">', "01.")
-    strURLimg = (u'<div id="vigilanceMap">', "01.")
-#    urlMap = u"https://www.pollens.fr/generated/vigilance_map.png"
-    urlDataDep = u'/risks/thea/counties/'
 
     def __init__(self):
         """ Init plugin
@@ -60,13 +48,6 @@ class VigiallergenManager(Plugin):
         # check if the plugin is configured. If not, this will stop the plugin and log an error
         #if not self.check_configured():
         #    return
-
-        self.validityDate = ""
-        self.urlVigipollens = ""
-        self.urlVigiMap = ""
-
-        # get plugin parameters and web site source parameters
-        self.getVigiSource(self.get_config("httpsource"))
         # get the devices list
         self.devices = self.get_device_list(quit_if_no_device = True)
 
@@ -98,7 +79,7 @@ class VigiallergenManager(Plugin):
                     device_id = a_device["id"]
                     if device_id not in self.vigiallergens_list :
                         self.log.info(u"Create device ({0}) allergens vigilance for departement '{1}'".format(device_id, departement))
-                        vigiallergens_list[device_id] = VigiRnsaPollens(self.log, self.send_data, self.get_stop(), self.getURIDep, directory, device_id, departement)
+                        vigiallergens_list[device_id] = VigiRnsaPollens(self.log, self.send_data, self.get_stop(), self.get_config, directory, device_id, departement, self.register_thread)
                         # start the vigipollens thread
                         thr_name = "vigiallergens_{0}".format(device_id)
                         self.vigiallergensthreads[thr_name] = threading.Thread(None,
@@ -142,8 +123,6 @@ class VigiallergenManager(Plugin):
             self.log.debug(u"Bad MQ message to send : {0}".format(data))
             pass
 
-
-    # -------------------------------------------------------------------------------------------------
     def reload_devices(self, devices):
         """ Called when some devices are added/deleted/updated
         """
@@ -151,60 +130,6 @@ class VigiallergenManager(Plugin):
         self.sensors = self.get_sensors(devices)
         self._loadDMGDevices()
         self.log.info(u"==> Reload Device called, All updated")
-
-    def getVigiSource(self, httpsource):
-        """
-        Load vigipollens web site and extact parameters
-        """
-        self.log.debug(u"Manager loading web site source .....")
-        try :
-            req = urllib.urlopen(httpsource)
-            htmltext = req.read().decode("utf-8", "replace")
-            req.close()
-            self.log.info(u"Manager loaded web site source : {0}".format(httpsource))
-        except urllib.error.URLError as e:
-            self.log.error(u"Manager GET {0}, URLError reason: {1}".format(httpsource, e.reason))
-        except urllib.error.HTTPError as e:
-            self.log.error(u"Manager GET {0}, HTTPError code: {1} ({2})".format(httpsource, e.code, e.reason))
-        except UnicodeDecodeError as e:
-            self.log.error(u"Manager decoding {0}, Unicode fail: {1} )".format(httpsource, e))
-        except :
-            self.log.error(u"Manager GET {0}, Unknown error: {1}".format(httpsource, traceback.format_exc()))
-        else :
-            locale.setlocale(locale.LC_ALL, '')
-#            print(htmltext)
-            start = htmltext.find(self.strValidity) + len(self.strValidity)
-            end = htmltext.find(u"</u>", start)
-            validDate = htmltext[start:end]
-            h = HTMLParser()
-            validDate = u"{0}".format(h.unescape(validDate))
-            year = datetime.now().year
-            try :
-                Validity = datetime.strptime(u"{0} {1}".format(validDate, year).encode('utf-8'), '%d %B %Y' )
-                self.validityDate = Validity.strftime('%Y-%m-%d')
-                self.log.info(u"Manager decode validity date :  {0}".format(self.validityDate))
-            except ValueError as e:
-                self.log.warning(u"Manager fail to decode validity date on source : {0}, error is : {1}".format(validDate, e))
-                self.validityDate = ""
-            try :
-                start = htmltext.find(self.strURLimg[0])
-                start = htmltext.find(u'<img src="', start + len(self.strURLimg[0]))
-                end = htmltext.find(u' alt="', start + len(self.strURLimg[0]))
-                self.urlVigiMap = htmltext[start+10:end]
-                self.urlVigipollens = u"{0}{1}".format(httpsource, self.urlDataDep)
-                self.log.info(u"Manager decode URL for vigi map : {0}, URI for dep : {1}".format(self.urlVigiMap, self.urlVigipollens))
-            except ValueError as e:
-                self.log.warning(u"Manager fail to decode URL for vigi map on source : {0}, error is : {1}".format(self.urlVigiMap, e))
-                self.urlVigiMap = ""
-                self.urlVigipollens = ""
-
-    def getURIDep(self, dep):
-        """Return URL for vigilance value from a french departement"""
-        if self.urlVigipollens :
-            return ("{0}{1}".format(self.urlVigipollens, dep), self.validityDate)
-        else :
-            return ("", "")
-
 
 if __name__ == "__main__":
     vigiallergen = VigiallergenManager()
